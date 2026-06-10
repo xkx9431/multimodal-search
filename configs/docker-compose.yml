@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+  # ---- MinIO：S3 兼容对象存储 ----
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    ports:
+      - "9000:9000"   # S3 API
+      - "9001:9001"   # Web Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+  # ---- Milvus 依赖 ----
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.5
+    environment:
+      - ETCD_AUTO_COMPACTION_MODE=revision
+      - ETCD_AUTO_COMPACTION_RETENTION=1000
+      - ETCD_QUOTA_BACKEND_BYTES=4294967296
+    volumes:
+      - etcd_data:/etcd
+    command: etcd -advertise-client-urls=http://127.0.0.1:2379 -listen-client-urls http://0.0.0.0:2379 --data-dir /etcd
+
+  # ---- Milvus 自带 minio（独立实例，避免和上面那个混用）----
+  milvus-minio:
+    image: minio/minio:latest
+    container_name: milvus-minio
+    environment:
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - milvus_minio_data:/minio_data
+    command: minio server /minio_data
+
+  # ---- Milvus standalone ----
+  milvus:
+    image: milvusdb/milvus:v2.4.5
+    container_name: milvus
+    command: ["milvus", "run", "standalone"]
+    environment:
+      ETCD_ENDPOINTS: etcd:2379
+      MINIO_ADDRESS: milvus-minio:9000
+    ports:
+      - "19530:19530"   # gRPC
+      - "9091:9091"     # HTTP metrics
+    depends_on:
+      - etcd
+      - milvus-minio
+
+  # ---- Attu：Milvus Web GUI（可选但强烈推荐）----
+  attu:
+    image: zilliz/attu:v2.4
+    container_name: attu
+    ports:
+      - "8000:3000"
+    environment:
+      MILVUS_URL: milvus:19530
+    depends_on:
+      - milvus
+
+volumes:
+  minio_data:
+  etcd_data:
+  milvus_minio_data:
