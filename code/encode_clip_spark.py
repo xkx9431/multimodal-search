@@ -51,6 +51,7 @@ def clip_encode_udf(keys: pd.Series) -> pd.Series:
             x = torch.stack(batch_imgs).to(device)
             feats = model.encode_image(x)
             feats = feats / feats.norm(dim=-1, keepdim=True)  # L2 normalize
+        # Accumulate all embeddings for this partition into vectors
         for v in feats.cpu().numpy():
             vectors.append(v.astype(np.float32).tolist())
         batch_imgs.clear()

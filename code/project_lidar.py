@@ -4,9 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 from nuscenes.nuscenes import NuScenes
-from nuscenes.utils.geometry_utils import view_points
-from pyquaternion import Quaternion
-from nuscenes.utils.data_classes import LidarPointCloud
 
 nusc = NuScenes(version='v1.0-mini', dataroot='data/nuscenes', verbose=False)
 out_dir = Path('output/projections')
