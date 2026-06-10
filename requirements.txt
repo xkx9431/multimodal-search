@@ -1,0 +1,26 @@
+# 数据 & 工具
+nuscenes-devkit==1.1.11
+numpy<2.0
+pandas
+pyarrow
+pillow
+opencv-python
+matplotlib
+tqdm
+boto3
+minio
+python-dotenv
+
+# 模型
+torch                # 如有 GPU：装对应 CUDA 版本
+torchvision
+open_clip_torch==2.24.0
+
+# 检索 / 处理
+pyspark==3.5.1
+pymilvus==2.4.4
+
+# 服务
+fastapi
+uvicorn[standard]
+streamlit
